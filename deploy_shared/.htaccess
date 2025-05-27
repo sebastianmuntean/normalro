@@ -1,41 +1,57 @@
 RewriteEngine On
 
-# Handle API routes - proxy to Flask backend (shared hosting version)
+# Handle API routes - use standalone.py for testing (no Flask dependencies)
 RewriteCond %{REQUEST_URI} ^/api/(.*)$
-RewriteRule ^api/(.*)$ backend/wsgi_shared.py/$1 [QSA,L]
+RewriteRule ^api/(.*)$ backend/standalone.py/$1 [QSA,L]
+
+# Debug route for diagnostics
+RewriteCond %{REQUEST_URI} ^/debug$
+RewriteRule ^debug$ backend/debug.py [QSA,L]
 
 # Handle React Router - all other routes go to index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_URI} !^/api/
 RewriteCond %{REQUEST_URI} !^/backend/
+RewriteCond %{REQUEST_URI} !^/debug$
 RewriteRule ^.*$ index.html [QSA,L]
 
 # Set environment variables for production
 SetEnv FLASK_ENV production
 SetEnv SECRET_KEY "change-this-to-a-secure-random-string-right-now"
 SetEnv JWT_SECRET_KEY "change-this-to-another-secure-random-string"
-SetEnv PYTHONPATH "/home/your-username/public_html/backend"
+SetEnv PYTHONPATH "/home2/r101524norm/public_html/backend"
 
 # Python CGI configuration for shared hosting
 AddHandler cgi-script .py
 Options +ExecCGI
 
-# Set file permissions via .htaccess (alternative to chmod)
+# Force executable permissions for Python files
+<Files "standalone.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
+<Files "debug.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
+<Files "index.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
 <Files "wsgi_shared.py">
     ForceType application/x-httpd-cgi
     Options +ExecCGI
 </Files>
 
-<Files "wsgi.py">
-    ForceType application/x-httpd-cgi
+# Alternative Python execution method for shared hosting
+<FilesMatch "\.py$">
+    SetHandler cgi-script
     Options +ExecCGI
-</Files>
-
-<Files "app.py">
-    ForceType application/x-httpd-cgi
-    Options +ExecCGI
-</Files>
+</FilesMatch>
 
 # CORS headers for API
 <IfModule mod_headers.c>

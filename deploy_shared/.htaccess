@@ -1,0 +1,48 @@
+RewriteEngine On
+
+# Handle API routes - proxy to Flask backend (shared hosting version)
+RewriteCond %{REQUEST_URI} ^/api/(.*)$
+RewriteRule ^api/(.*)$ backend/wsgi_shared.py/$1 [QSA,L]
+
+# Handle React Router - all other routes go to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{REQUEST_URI} !^/backend/
+RewriteRule ^.*$ index.html [QSA,L]
+
+# Set environment variables for production
+SetEnv FLASK_ENV production
+SetEnv SECRET_KEY "change-this-to-a-secure-random-string-right-now"
+SetEnv JWT_SECRET_KEY "change-this-to-another-secure-random-string"
+SetEnv PYTHONPATH "/home/your-username/public_html/backend"
+
+# Python CGI configuration for shared hosting
+AddHandler cgi-script .py
+Options +ExecCGI
+
+# Set file permissions via .htaccess (alternative to chmod)
+<Files "wsgi_shared.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
+<Files "wsgi.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
+<Files "app.py">
+    ForceType application/x-httpd-cgi
+    Options +ExecCGI
+</Files>
+
+# CORS headers for API
+<IfModule mod_headers.c>
+    Header add Access-Control-Allow-Origin "*"
+    Header add Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header add Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Error handling
+ErrorDocument 404 /index.html 

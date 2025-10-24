@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
 import enCommon from '../locales/en/common.json';
@@ -15,24 +16,22 @@ const resources = {
 };
 
 i18n
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem('language') || 'en', // default language
     fallbackLng: 'en',
-    debug: false,
-    
-    // Namespace
+    supportedLngs: ['en', 'ro'],
     defaultNS: 'common',
-    
-    interpolation: {
-      escapeValue: false // React already escapes by default
-    },
-    
-    // Save language to localStorage
+    ns: ['common'],
+    debug: false,
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
+      caches: ['localStorage'],
+      lookupLocalStorage: 'language'
+    },
+    interpolation: {
+      escapeValue: false
     }
   });
 

@@ -1,91 +1,110 @@
-import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Avatar, Menu, MenuItem, IconButton, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider,
+  Typography
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { AuthContext } from '../contexts/AuthContext';
 import LanguageSelector from './LanguageSelector';
 import Logo from './Logo';
-import '../App.css'; // Import App.css for .App-header styles
+import { tools as catalog } from '../data/tools';
+import '../App.css';
 
 const Navbar = () => {
   const { t } = useTranslation();
-  const { user, setUser, setToken } = useContext(AuthContext);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const navigate = useNavigate();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
 
-  const handleLogout = () => {
-    setUser(null);
-    setToken(null);
-    handleClose();
-    navigate('/login');
-  };
+  const links = [
+    { to: '/', label: t('nav.home') },
+    ...catalog.map((tool) => ({
+      to: `/tools/${tool.slug}`,
+      label: t(tool.titleKey)
+    }))
+  ];
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
+  const toggleDrawer = (value) => () => {
+    setOpen(value);
   };
 
   return (
-    <AppBar 
-      position="static" 
-      className="App-header"
-      sx={{ 
-        backgroundColor: 'transparent',
-        boxShadow: 'none',
-        color: '#333'
-      }}
-    >
-      <Toolbar>
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <Logo color="#333" size={36} />
-          </Link>
-        </Box>
-        {user && user.is_admin && (
-          <Button sx={{ color: '#333' }} component={Link} to="/admin">{t('nav.admin')}</Button>
-        )}
-        <Box sx={{ mx: 1 }}>
-          <LanguageSelector />
-        </Box>
-        {user ? (
-          <Box>
-            <IconButton onClick={handleMenu} sx={{ color: '#333' }} size="large">
-              <Avatar sx={{ bgcolor: "#1976d2" }}>
-                {user.username ? user.username[0].toUpperCase() : "U"}
-              </Avatar>
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-            >
-              <Box sx={{ px: 2, py: 1 }}>
-                <Typography variant="subtitle1">{user.username}</Typography>
-                {user.email && (
-                  <Typography variant="body2" color="text.secondary">{user.email}</Typography>
-                )}
-              </Box>
-              <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>{t('nav.profile')}</MenuItem>
-              <MenuItem onClick={handleLogout}>{t('nav.logout')}</MenuItem>
-            </Menu>
+    <>
+      <AppBar
+        position="static"
+        className="App-header"
+        sx={{ backgroundColor: 'transparent', boxShadow: 'none', color: '#333' }}
+      >
+        <Toolbar sx={{ gap: 2 }}>
+          <IconButton
+            edge="start"
+            onClick={toggleDrawer(true)}
+            sx={{ color: '#333', mr: 1 }}
+            aria-label={t('nav.openMenu')}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <Logo size={36} />
+            </Link>
           </Box>
-        ) : (
-          <Button sx={{ color: '#333' }} component={Link} to="/login">{t('nav.login')}</Button>
-        )}
-      </Toolbar>
-    </AppBar>
+          <Box sx={{ ml: 1 }}>
+            <LanguageSelector />
+          </Box>
+        </Toolbar>
+      </AppBar>
+      <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+        <Box
+          role="presentation"
+          sx={{ width: 260, display: 'flex', flexDirection: 'column', height: '100%' }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
+            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <Logo size={32} />
+            </Link>
+            <IconButton onClick={toggleDrawer(false)} aria-label={t('nav.closeMenu')}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Divider />
+          <List sx={{ flexGrow: 1 }}>
+            {links.map((link) => {
+              const isActive =
+                link.to === '/' ? location.pathname === '/' : location.pathname.startsWith(link.to);
+              return (
+                <ListItemButton
+                  key={link.to}
+                  component={Link}
+                  to={link.to}
+                  onClick={toggleDrawer(false)}
+                  selected={isActive}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ fontWeight: isActive ? 600 : 500 }}>{link.label}</Typography>
+                    }
+                  />
+                </ListItemButton>
+              );
+            })}
+          </List>
+          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <LanguageSelector />
+          </Box>
+        </Box>
+      </Drawer>
+    </>
   );
 };
 
-export default Navbar; 
+export default Navbar;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, IconButton } from '@mui/material';
+import { IconButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 const FlagIcon = ({ country, size = 20 }) => {
@@ -33,7 +33,6 @@ const LanguageSelector = () => {
   const handleLanguageToggle = () => {
     const newLanguage = i18n.language === 'en' ? 'ro' : 'en';
     i18n.changeLanguage(newLanguage);
-    localStorage.setItem('language', newLanguage);
   };
 
   const currentFlag = i18n.language === 'en' ? 'us' : 'ro';

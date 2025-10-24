@@ -1,21 +1,29 @@
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 
-export const login = (username, password) =>
-  axios.post(`${API_BASE_URL}/auth/login`, { username, password });
+const client = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
-export const register = (username, email, password) =>
-  axios.post(`${API_BASE_URL}/auth/register`, { username, email, password });
+export const fetchTools = () => client.get('/tools');
 
-export const getProfile = (token) =>
-  axios.get(`${API_BASE_URL}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+export const generateSlug = (text) =>
+  client.post('/tools/slug-generator', { text });
 
-export const getPages = () =>
-  axios.get(`${API_BASE_URL}/pages`);
+export const analyzeText = (text) =>
+  client.post('/tools/word-counter', { text });
 
-export const updateProfile = (token, data) =>
-  axios.put(`${API_BASE_URL}/auth/me`, data, {
-    headers: { Authorization: `Bearer ${token}` }
-  }); 
+export const createPassword = (options) =>
+  client.post('/tools/password-generator', { lowercase: true, ...options });
+
+export const convertBase64 = (payload) =>
+  client.post('/tools/base64-converter', payload);
+
+export const generateCnp = (payload) =>
+  client.post('/tools/cnp-generator', payload);
+
+export const validateCnp = (cnp) =>
+  client.post('/tools/cnp-validator', { cnp });

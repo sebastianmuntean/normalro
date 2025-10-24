@@ -11,9 +11,13 @@ import string
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    
+    # Get allowed origins from environment variable or use defaults
+    allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    
     CORS(app, resources={
         r"/*": {
-            "origins": ["http://localhost:3000"],
+            "origins": allowed_origins,
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Accept-Language"]
         }

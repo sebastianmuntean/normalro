@@ -1,5 +1,4 @@
 from app import app
 
-# This is the entry point for Vercel
-if __name__ == "__main__":
-    app.run()
+# Export the Flask app for Vercel
+# This is required for Vercel's Python runtime
